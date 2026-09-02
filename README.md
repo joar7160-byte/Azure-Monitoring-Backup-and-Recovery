@@ -113,11 +113,11 @@ Confirmed the Recovery Services vault encrypts data at rest using Microsoft-mana
 
 ## Decisions & Significance
 
-- **Locally-redundant storage for the vault instead of Geo-redundant.** Cross-region resilience is what Site Recovery is for. Paying for Geo-redundant backup storage on top of that would have been redundant cost for a requirement already covered elsewhere in the same project.
+- **Locally-redundant storage for the vault instead of Geo-redundant.** Cross-region resilience is what Site Recovery is for. Paying for Geo-redundant backup storage on top of that would have been redundant cost for a requirement already covered elsewhere in the same project, so the two features were kept doing separate, non-overlapping jobs instead of duplicating each other.
 
-- **Diagnosed the alert evaluation delay with evidence instead of assuming misconfiguration.** The alert rule's empty evaluation history was checked directly rather than guessed at, which is what confirmed the real cause was a delay in evaluation rather than a broken rule.
+- **Enhanced backup policy instead of Standard.** The VM uses Trusted Launch, a security default on newer Windows Server images, and Standard policy doesn't support it. Rather than disabling Trusted Launch to fit an older policy type, the backup configuration was matched to the VM's actual security posture, since a real environment isn't going to weaken its security baseline just to simplify its backup setup.
 
-- **Documented the Site Recovery limitation with the actual policy data.** Rather than retrying regions indefinitely, the subscription's exact allowed-locations list was pulled directly from Azure Policy and cross-referenced against the Automation Account's own regional restriction, confirming the two lists only overlap on the source region itself.
+- **Verified outcomes instead of stopping at configuration.** A monitoring alert, a backup, and a KQL query can all look correctly set up in the portal while quietly not doing anything. This project pushed past that at every stage: the CPU alert was confirmed by an actual fired notification, the backup by a real completed recovery point, and the query by real data from a live stress test, not just settings that appeared right.
 
 ## Troubleshooting Notes
 
