@@ -97,10 +97,6 @@ No Log Analytics workspace existed yet, since the earlier monitoring setup route
 
 <img src="screenshots/21-troubleshooting-no-log-analytics-workspace.png" width="900"><br><br>
 
-Created a workspace and a Data Collection Rule to route performance counters to it. The first attempt silently failed to save.
-
-<img src="screenshots/22-troubleshooting-dcr-not-created.png" width="700"><br><br>
-
 Recreated the DCR, confirmed via its diagram that both the OpenTelemetry pipeline and the new Log Analytics pipeline were correctly configured side by side.
 
 <img src="screenshots/23-dcr-correctly-configured-diagram.png" width="700"><br><br>
