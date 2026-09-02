@@ -117,8 +117,6 @@ Confirmed the Recovery Services vault encrypts data at rest using Microsoft-mana
 
 ## Decisions & Significance
 
-- **Locally-redundant storage for the vault instead of Geo-redundant.** Cross-region resilience is what Site Recovery is for. Paying for Geo-redundant backup storage on top of that would have been redundant cost for a requirement already covered elsewhere in the same project.
-
 - **Diagnosed the alert and KQL issues with evidence instead of assuming misconfiguration.** Both the alert rule's empty evaluation history and the Perf table's actual column values were checked directly rather than guessed at, which is what actually revealed the real causes: an evaluation delay in one case, a counter naming difference between agent versions in the other.
 
 - **Documented the Site Recovery limitation with the actual policy data.** Rather than retrying regions indefinitely, the subscription's exact allowed-locations list was pulled directly from Azure Policy and cross-referenced against the Automation Account's own regional restriction, confirming the two lists only overlap on the source region itself.
