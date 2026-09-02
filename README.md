@@ -101,25 +101,21 @@ Created a workspace and a Data Collection Rule to route performance counters to 
 
 <img src="screenshots/22-dcr-correctly-configured-diagram.png" width="700"><br><br>
 
-The project's original query returned no results even once data was flowing, because it filtered on `ObjectName == "Processor"`, while the Azure Monitor Agent reports this counter under `"Processor Information"` instead.
+Queried CPU performance data from the stress test, confirming real values averaging 100% across the sampled window.
 
-<img src="screenshots/23-troubleshooting-perf-table-processor-information-naming.png" width="900"><br><br>
-
-Corrected the query and confirmed real CPU data from the stress test, averaging 100% across the sampled window.
-
-<img src="screenshots/24-kql-query-success-avg-cpu-100.png" width="700"><br><br>
+<img src="screenshots/23-kql-query-success-avg-cpu-100.png" width="700"><br><br>
 
 **7. Verified backup encryption**
 
 Confirmed the Recovery Services vault encrypts data at rest using Microsoft-managed keys by default.
 
-<img src="screenshots/25-vault-encryption-microsoft-managed-keys.png" width="700"><br><br>
+<img src="screenshots/24-vault-encryption-microsoft-managed-keys.png" width="700"><br><br>
 
 ## Decisions & Significance
 
 - **Locally-redundant storage for the vault instead of Geo-redundant.** Cross-region resilience is what Site Recovery is for. Paying for Geo-redundant backup storage on top of that would have been redundant cost for a requirement already covered elsewhere in the same project.
 
-- **Diagnosed the alert and KQL issues with evidence instead of assuming misconfiguration.** Both the alert rule's empty evaluation history and the Perf table's actual column values were checked directly rather than guessed at, which is what actually revealed the real causes: an evaluation delay in one case, a counter naming difference between agent versions in the other.
+- **Diagnosed the alert evaluation delay with evidence instead of assuming misconfiguration.** The alert rule's empty evaluation history was checked directly rather than guessed at, which is what confirmed the real cause was a delay in evaluation rather than a broken rule.
 
 - **Documented the Site Recovery limitation with the actual policy data.** Rather than retrying regions indefinitely, the subscription's exact allowed-locations list was pulled directly from Azure Policy and cross-referenced against the Automation Account's own regional restriction, confirming the two lists only overlap on the source region itself.
 
@@ -128,14 +124,13 @@ Confirmed the Recovery Services vault encrypts data at rest using Microsoft-mana
 - Standard backup policy sub-type was rejected for a Trusted Launch VM; resolved by switching to Enhanced, which explicitly supports Trusted Launch
 - Site Recovery deployment failed with a policy violation when auto-creating an Automation Account in the target region; confirmed via Activity Log error details and the subscription's actual allowed-locations policy that no region satisfies both the general location policy and the Student subscription's Automation Account restriction other than the source region
 - The CPU alert rule's evaluation history showed no results despite sustained real CPU load; the alert eventually fired and delivered an email, confirming a delay in evaluation rather than a configuration problem
-- The project's original KQL query returned no results because the Azure Monitor Agent reports the CPU counter under `ObjectName == "Processor Information"`, not the classic `"Processor"` name the query expected
 
 ## What This Demonstrates
 
 - Configuring Azure Monitor, VM Insights, and a metric alert rule, and verifying the alert actually fires rather than only appearing correctly configured
 - Setting up Azure Backup with a policy matched to the VM's actual security configuration, and completing a real, verified recovery point
 - Diagnosing a genuine subscription-level infrastructure constraint using policy data rather than trial and error, and documenting it as a real finding
-- Writing and correcting a KQL query against live performance data, including resolving a naming difference between agent versions
+- Writing and running a KQL query against live performance data collected through a Data Collection Rule
 
 ## Why This Project Matters
 
