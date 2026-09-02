@@ -97,25 +97,27 @@ No Log Analytics workspace existed yet, since the earlier monitoring setup route
 
 <img src="screenshots/21-troubleshooting-no-log-analytics-workspace.png" width="900"><br><br>
 
-Recreated the DCR, confirmed via its diagram that both the OpenTelemetry pipeline and the new Log Analytics pipeline were correctly configured side by side.
+Created a workspace and a Data Collection Rule to route performance counters to it, confirmed via its diagram that both the OpenTelemetry pipeline and the new Log Analytics pipeline were correctly configured side by side.
 
-<img src="screenshots/23-dcr-correctly-configured-diagram.png" width="700"><br><br>
+<img src="screenshots/22-dcr-correctly-configured-diagram.png" width="700"><br><br>
 
 The project's original query returned no results even once data was flowing, because it filtered on `ObjectName == "Processor"`, while the Azure Monitor Agent reports this counter under `"Processor Information"` instead.
 
-<img src="screenshots/24-troubleshooting-perf-table-processor-information-naming.png" width="900"><br><br>
+<img src="screenshots/23-troubleshooting-perf-table-processor-information-naming.png" width="900"><br><br>
 
 Corrected the query and confirmed real CPU data from the stress test, averaging 100% across the sampled window.
 
-<img src="screenshots/25-kql-query-success-avg-cpu-100.png" width="700"><br><br>
+<img src="screenshots/24-kql-query-success-avg-cpu-100.png" width="700"><br><br>
 
 **7. Verified backup encryption**
 
 Confirmed the Recovery Services vault encrypts data at rest using Microsoft-managed keys by default.
 
-<img src="screenshots/26-vault-encryption-microsoft-managed-keys.png" width="700"><br><br>
+<img src="screenshots/25-vault-encryption-microsoft-managed-keys.png" width="700"><br><br>
 
 ## Decisions & Significance
+
+- **Locally-redundant storage for the vault instead of Geo-redundant.** Cross-region resilience is what Site Recovery is for. Paying for Geo-redundant backup storage on top of that would have been redundant cost for a requirement already covered elsewhere in the same project.
 
 - **Diagnosed the alert and KQL issues with evidence instead of assuming misconfiguration.** Both the alert rule's empty evaluation history and the Perf table's actual column values were checked directly rather than guessed at, which is what actually revealed the real causes: an evaluation delay in one case, a counter naming difference between agent versions in the other.
 
@@ -127,7 +129,6 @@ Confirmed the Recovery Services vault encrypts data at rest using Microsoft-mana
 - Site Recovery deployment failed with a policy violation when auto-creating an Automation Account in the target region; confirmed via Activity Log error details and the subscription's actual allowed-locations policy that no region satisfies both the general location policy and the Student subscription's Automation Account restriction other than the source region
 - The CPU alert rule's evaluation history showed no results despite sustained real CPU load; the alert eventually fired and delivered an email, confirming a delay in evaluation rather than a configuration problem
 - The project's original KQL query returned no results because the Azure Monitor Agent reports the CPU counter under `ObjectName == "Processor Information"`, not the classic `"Processor"` name the query expected
-- A Data Collection Rule silently failed to save on the first attempt; recreating it and confirming each step through to a final "Create" resolved it
 
 ## What This Demonstrates
 
